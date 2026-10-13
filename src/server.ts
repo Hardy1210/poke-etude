@@ -3,8 +3,25 @@ const { randomInt } = require('node:crypto');
 
 const hostname = '127.0.0.1';
 const port = 3000;
-const captured = [];
+const captured: number[] = [];
 const server = createServer(async (req, res) => {
+
+    async function callPoke(id : number){
+        const getpoke = await fetch('https://pokeapi.co/api/v2/pokemon/'+id);
+            const data = await getpoke.json();
+
+            const poke = {
+                                "pokemon": {
+                                    "id": data.id,
+                                    "name": data.name,
+                                    // "sprite": data.,
+                                    "types": data.types,
+                                    "stats": data.stats
+                                },
+                                // "captureRate": 190
+                                };
+        return poke;
+    }
 
     if (req.method === 'GET' && req.url === '/hello') {
         res.statusCode = 200;
@@ -13,20 +30,9 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && req.url === '/wild') {
-        const id = randomInt(1,1025);
-        const getpoke = await fetch('https://pokeapi.co/api/v2/pokemon/'+id);
-        const data = await getpoke.json();
+        const randomId = randomInt(1,1025);
 
-        const randomPoke = {
-                            "pokemon": {
-                                "id": data.id,
-                                "name": data.name,
-                                // "sprite": data.,
-                                "types": data.types,
-                                "stats": data.stats
-                            },
-                            // "captureRate": 190
-                            };
+        const randomPoke = await callPoke(randomId)
 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -42,6 +48,7 @@ const server = createServer(async (req, res) => {
         if (Number.isInteger(Number(id))) {
             res.statusCode = 200;
             if (luck >= captureRate){
+                captured.unshift(id);
                 res.end(JSON.stringify("capture successful"));
             } else{
             res.end(JSON.stringify("capture missed"));}
@@ -50,8 +57,21 @@ const server = createServer(async (req, res) => {
             res.end(JSON.stringify("Invalid Pokémon ID"));
         }
     }
+
+    if (req.method === "GET" && req.url === "/pokedex") {
+        res.setHeader('Content-Type', 'application/json');
+        const resultat: any[] = [];
+
+        for (const id of captured) {
+            resultat.push(await callPoke(Number(id)));
+        }
+
+        res.statusCode = 200;
+        res.end(JSON.stringify(resultat));
+    }
 });
 
 server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
 });
+
