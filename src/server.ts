@@ -18,6 +18,15 @@ const server = createServer(async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(data));
     }
+
+    if (req.method === 'POST' && req.url === '/capture') {
+        const postpoke = await fetch('https://pokeapi.co/api/v2/pokemon/9');
+        const data = await postpoke.json();
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(data));
+    }
 });
 
 server.listen(port, hostname, () => {
