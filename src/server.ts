@@ -1,4 +1,5 @@
 const { createServer } = require('node:http');
+const { randomInt } = require("node:crypto");
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -11,7 +12,8 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && req.url === '/wild') {
-        const getpoke = await fetch('https://pokeapi.co/api/v2/pokemon/6');
+        let id = randomInt(1, 1025);
+        const getpoke = await fetch('https://pokeapi.co/api/v2/pokemon/'+id);
         const data = await getpoke.json();
 
         res.statusCode = 200;
