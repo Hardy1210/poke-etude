@@ -47,8 +47,10 @@ const server = createServer(async (req, res) => {
 
         if (Number.isInteger(Number(id))) {
             res.statusCode = 200;
-            if (luck >= captureRate){
-                captured.unshift(id);
+            if (luck >= captureRate){                
+                if (!captured.includes(Number(id))) {
+                    captured.unshift(Number(id));
+                }
                 res.end(JSON.stringify("capture successful"));
             } else{
             res.end(JSON.stringify("capture missed"));}
