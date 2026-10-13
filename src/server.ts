@@ -5,7 +5,6 @@ import {v4 as uuidv4} from 'uuid';
 const hostname = '127.0.0.1';
 const port = 3000;
 const capturedHistory: number[] = [];
-const team
 let lastEncounter = 0;
 const server = createServer(async (req, res) => {
 
