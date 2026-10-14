@@ -8,11 +8,10 @@ const capturedHistory: number[] = [];
 let lastEncounter = 0;
 const pokemonService = new PokemonService();
 
-const app: Express = express();
+export const app: Express = express();
 app.get("/hello", (req, res) => {
     res.send("Welcome to pokedex");
 })
-app.listen(3000);
 
 app.get("/wild", async (req, res) => {
     const randomId = randomInt(1,1025);
@@ -26,11 +25,10 @@ app.get("/wild", async (req, res) => {
 })
 
 
-app.post('/capture/', async (req, res) => {
-    const url = req.url ?? '';
+app.post('/capture/:id', async (req, res) => {
+    const id = req.params.id;
     const luck = randomInt(1,100);
     const captureRate = randomInt(1,100);
-    const id = url.replace("/capture/", "");
     res.setHeader('Content-Type', 'application/json');
 
     if (Number(id) !== lastEncounter){
