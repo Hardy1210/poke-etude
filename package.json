@@ -4,21 +4,23 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/server.ts",
+    "test": "vitest",
+    "dev": "tsx watch src/main.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/main.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
     "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.4"
   },
   "dependencies": {
+    "@vitest/coverage-v8": "^5.0.4",
     "uuid": "^14.0.3"
   },
   "allowScripts": {

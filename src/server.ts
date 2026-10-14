@@ -1,65 +1,45 @@
-const { createServer } = require('node:http');
-const { randomInt } = require('node:crypto');
+import { createServer } from 'node:http';
+import { randomInt } from 'node:crypto';
 import {v4 as uuidv4} from 'uuid';
+import PokemonService from "./services/pokeApiService.js";
 
-const hostname = '127.0.0.1';
-const port = 3000;
 const capturedHistory: number[] = [];
 let lastEncounter = 0;
-const server = createServer(async (req, res) => {
+const pokemonService = new PokemonService();
+export const server = createServer(async (req, res) => {
+    const url = req.url ?? '';
 
-    async function callPoke(id : number){
-        const getpoke = await fetch('https://pokeapi.co/api/v2/pokemon/'+id);
-            const data = await getpoke.json();
-
-            const poke = {
-                            "pokemon": {
-                                "id": data.id,
-                                "name": data.name,
-                                // "sprite": data.,
-                                "types": data.types,
-                                "stats": data.stats
-                            },
-                            // "captureRate": 190
-                        };
-        return poke;
-    }
-
-    if (req.method === 'GET' && req.url === '/hello') {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/plain');
-        res.end('Hello World');
-    }
-
-    if (req.method === 'GET' && req.url === '/wild') {
+    if (req.method === 'GET' && url === '/wild') {
         const randomId = randomInt(1,1025);
         lastEncounter = randomId;
-        const randomPoke = await callPoke(randomId)
+        const randomPoke = await pokemonService.callPoke(randomId);
 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(randomPoke));
+        return;
     }
 
-    if (req.method === 'POST' && req.url.startsWith('/capture/')) {
+    if (req.method === 'POST' && url.startsWith('/capture/')) {
         const luck = randomInt(1,100);
         const captureRate = randomInt(1,100);
-        const id = req.url.replace("/capture/", "");
+        const id = url.replace("/capture/", "");
         res.setHeader('Content-Type', 'application/json');
 
-        if (id != lastEncounter){
+        if (Number(id) !== lastEncounter){
             res.statusCode = 400;
-                res.end(JSON.stringify("This Pokémon was not the last encounter."))
+            res.end(JSON.stringify("This Pokémon was not the last encounter."));
+            return;
         }
 
         if (Number.isInteger(Number(id))) {
             res.statusCode = 200;
-            if (luck >= captureRate){                
+            if (luck >= captureRate){
                 if (!capturedHistory.includes(Number(id))) {
                     capturedHistory.unshift(Number(id));
                 }
                 res.statusCode = 201;
-                const curPoke = await callPoke(lastEncounter);
+                const curPoke = await pokemonService.callPoke(lastEncounter);
                 const resultat = {
                                     "success": true,
                                     "captured": {
@@ -71,33 +51,30 @@ const server = createServer(async (req, res) => {
                                     }
                                 }
                 res.end(JSON.stringify(resultat));
-            } else{
-            const resultat = { "success": false, "message": "Oh non ! Le Pokémon s'est échappé !" }
-            res.end(JSON.stringify(resultat));}
-        } else {
-            res.statusCode = 400;
-            res.end(JSON.stringify("Invalid Pokémon ID"));
+                return;
+            } else {
+                const resultat = { "success": false, "message": "Oh non ! Le Pokémon s'est échappé !" }
+                res.statusCode = 200;
+                res.end(JSON.stringify(resultat));
+                return;
+            }
         }
     }
 
-    if (req.method === "GET" && req.url === "/pokedex") {
+    if (req.method === "GET" && url === "/pokedex") {
         res.setHeader('Content-Type', 'application/json');
         const resultat: any[] = [];
 
         for (const id of capturedHistory) {
-            resultat.push(await callPoke(Number(id)));
+            resultat.push(await pokemonService.callPoke(Number(id)));
         }
 
         res.statusCode = 200;
         res.end(JSON.stringify(resultat));
+        return;
     }
 
-    if (req.method === "GET" && req.url.startsWith('/pokedex/')) {
+    if (req.method === "GET" && url.startsWith('/pokedex/')) {
         res.setHeader('Content-Type', 'application/json');
     }
 });
-
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-});
-
