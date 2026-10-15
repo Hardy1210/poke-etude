@@ -1,8 +1,9 @@
 import request = require('supertest');
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
-import type { AddressInfo } from "node:net";
+import {describe, expect, it, vi} from "vitest";
 import PokemonService from "../services/pokeApiService.js";
-const { randomIntMock } = vi.hoisted(() => ({
+import {server} from "../server.js";
+
+const {randomIntMock} = vi.hoisted(() => ({
     randomIntMock: vi.fn<(min: number, max: number) => number>(),
 }));
 
@@ -10,10 +11,8 @@ const { randomIntMock } = vi.hoisted(() => ({
 vi.mock("node:crypto", async (importOriginal) => {
     const actual = await importOriginal<typeof import("node:crypto")>();
     randomIntMock.mockImplementation((min, max) => actual.randomInt(min, max));
-    return { ...actual, randomInt: randomIntMock };
+    return {...actual, randomInt: randomIntMock};
 });
-
-import { server } from "../server.js";
 
 describe("PokemonService.callPoke", () => {
     it("returns the requested pokemon", async () => {
@@ -47,7 +46,7 @@ describe("POST /capture/:id", () => {
         //
         //
         expect(response.status).toBe(400);
-        expect(response.body).toBe("This Pokémon was not the last encounter.");
+        expect(response.body).toBe("invalide id");
     });
 
     it("returns 201 and the captured pokemon when the capture succeeds", async () => {
@@ -72,7 +71,7 @@ describe("POST /capture/:id", () => {
         });
     })
 
-    it('return 200 if pokemon escape', async () =>{
+    it('return 200 if pokemon escape', async () => {
         randomIntMock
             .mockReturnValueOnce(25)  // /wild → randomId
             .mockReturnValueOnce(10)  // /capture → luck
@@ -84,5 +83,14 @@ describe("POST /capture/:id", () => {
         expect(response.status).toBe(200);
         expect(response.body).toMatchObject({"success": false, "message": "Oh non ! Le Pokémon s'est échappé !"})
 
+    })
+})
+
+describe("Erreur 404", () => {
+    it("returns 404 when route doesn't existe", async () => {
+        const sut = await request(server).get("/sut");
+        expect(sut.status).toBe(404);
+        //sut system under test
+        expect(sut.body).toMatchObject({error: "Route not found"})
     })
 })
