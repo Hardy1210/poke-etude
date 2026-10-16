@@ -10,3 +10,14 @@ export const loggerMiddleware = function (req: Request, res: Response, next: Nex
         })
     next()
 }
+
+export const errorHandler = function (req: Request, res: Response, next: NextFunction) {
+    if (res.statusCode === 405) {
+        res.json({error: 'Unautorized method'});
+    }
+
+    if (res.statusCode === 404) {
+        res.json({error: "Route not found"});
+    }
+
+}
